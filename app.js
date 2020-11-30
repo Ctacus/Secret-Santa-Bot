@@ -86,7 +86,7 @@ client.on('messageReactionRemove', async (reaction, user) => {
     let row = (await query(`SELECT * FROM users WHERE userId = ${user.id}`))[0];
 
     if (exchange.started === 1) {
-        if (row && row.exchangeId === 0) return; // event triggered by bot
+        if (!row || row.exchangeId === 0) return; // event triggered by bot
 
         const leaveFailedEmbed = new Discord.MessageEmbed()
             .setDescription(`Извините, но Анонимный Дед Мороз уже начался :( \nНапишите <@${exchange.creatorId}> пока не поздно!`) //TODO: вывести список всех организаторов
@@ -138,7 +138,8 @@ client.on('messageReactionAdd', async (reaction, user) => {
             .setDescription(`<@${user.id}> попытался присоединиться, но уже поздно :(`)
             .setColor(config.embeds_color);
 
-        client.users.fetch(exchange.creatorId).then(org => org.send(joinFailedEmbed2));
+        client.users.fetch(exchange.creatorId)
+                    .then(org => org.send(joinFailedEmbed2));
 
         return;
     }
@@ -151,13 +152,18 @@ client.on('messageReactionAdd', async (reaction, user) => {
     }
 
     if (row.exchangeId === 0) {
-        await query(`UPDATE users SET exchangeId = ${exchangeId} WHERE userId = ${user.id}`);
+        await query(`UPDATE users SET exchangeId = ${exchangeId}, notified = 1 WHERE userId = ${user.id}`);
 
         const joinEmbed = new Discord.MessageEmbed()
-            .setDescription(`__Вы успешно присоединились к Анонимному Деду Морозу от <@${exchange.creatorId}>!__\nЯ дам вам знать, когда всё начнется!`)
+            .setDescription(`__Вы успешно присоединились к Анонимному Деду Морозу!__\nЯ дам вам знать, когда всё начнется!`)
             .setColor(config.embeds_color)
 
-        client.users.fetch(user.id).then(recipient => recipient.send(joinEmbed));
+        client.users.fetch(user.id).then(recipient =>
+            recipient.send(joinEmbed).catch(reason => {
+                client.users.fetch(exchange.creatorId).then(org => org.send(`Кажется у присоединившегося участника <@${user.id}> закрыты личные сообщения (${reason})!`))
+                query(`UPDATE users SET notified = 0 WHERE userId = ${user.id}`);
+            })
+        );
     }
 });
 
