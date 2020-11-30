@@ -89,7 +89,7 @@ client.on('messageReactionRemove', async (reaction, user) => {
         if (!row || row.exchangeId === 0) return; // event triggered by bot
 
         const leaveFailedEmbed = new Discord.MessageEmbed()
-            .setDescription(`Извините, но Анонимный Дед Мороз уже начался :( \nНапишите <@${exchange.creatorId}> пока не поздно!`) //TODO: вывести список всех организаторов
+            .setDescription(`Извините, нельзя выйти из круга, т.к. Анонимный Дед Мороз уже начался :( \nНапишите организаторам пока не поздно, если не можете быть Дедом Морозом!`) //TODO: вывести список всех организаторов
             .setColor(config.embeds_color);
 
         client.users.fetch(user.id).then(recipient => recipient.send(leaveFailedEmbed));
@@ -120,15 +120,15 @@ client.on('messageReactionAdd', async (reaction, user) => {
 
     const exchangeId = reaction.message.id
     const exchange = (await query(`SELECT * FROM exchange WHERE exchangeId = ${exchangeId}`))[0];
-
+    let row = (await query(`SELECT * FROM users WHERE userId = ${user.id}`))[0];
     // no exchange associated with message
     if (!exchange) return;
 
     // exchange already started
-    else if (exchange.started === 1) {
+    else if (exchange.started === 1 && (!row || row.exchangeId===0)) {
         reaction.users.remove(user.id);
         const joinFailedEmbed = new Discord.MessageEmbed()
-            .setDescription(`Извините, но Анонимный Дед Мороз уже начался :( \nПопробуйте написать <@${exchange.creatorId}> пока не поздно!`)
+            .setDescription(`Извините, но вы опоздали, Анонимный Дед Мороз уже начался :( \nПопробуйте написать организаторам пока не поздно, если хотите присоединиться!`)
             .setColor(config.embeds_color);
 
         await client.users.fetch(user.id).then(recipient => recipient.send(joinFailedEmbed));
@@ -144,7 +144,6 @@ client.on('messageReactionAdd', async (reaction, user) => {
         return;
     }
 
-    let row = (await query(`SELECT * FROM users WHERE userId = ${user.id}`))[0];
 
     if (!row) {
         await methods.createNewUser(user.id);
