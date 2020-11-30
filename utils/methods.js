@@ -10,8 +10,9 @@ class Methods {
                 userId,
                 exchangeId,
                 wishlist,
-                partnerId) VALUES (
-                    ?, 0, '', 0
+                partnerId, 
+                notified) VALUES (
+                    ?, 0, '', 0, 0
                 )
             `, [userId]);
             return true;

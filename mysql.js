@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS users (
     userId BIGINT,
     exchangeId BIGINT,
     wishlist VARCHAR(1000),
-    partnerId BIGINT)
+    partnerId BIGINT,
+    notified TINYINT)
     ENGINE = InnoDB DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci
 `
 
