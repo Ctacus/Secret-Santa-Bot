@@ -6,7 +6,7 @@ const methods   = require('../utils/methods');
 module.exports = {
     name: 'partnerinfo',
     aliases: [''],
-    description: 'Показывает информацию о вашем тайном получателе и его пожелания.',
+    description: 'Показывает информацию о вашем подопечном и его пожеланиях.',
     hasArgs: false,
     requirePartner: true,
     worksInDM: true,
